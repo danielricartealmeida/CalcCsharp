@@ -217,21 +217,22 @@ while (true)
 
         try
         {
-            double resultado = LerTermo(elementos, ref indice);
+            double resultado = LerExpressao(elementos, ref indice);
 
             if (indice != elementos.Count)
             {
                 throw new FormatException(
-                    $"O elemento '{elementos[indice]}' ainda não é aceito nesta etapa. " +
-                    "Use somente números inteiros positivos com * ou /.");
+                    $"Elemento inesperado: '{elementos[indice]}'.");
             }
 
             Console.WriteLine($"Resultado: {resultado}");
         }
+
         catch (FormatException erro)
         {
             Console.WriteLine(erro.Message);
         }
+
         catch (DivideByZeroException erro)
         {
             Console.WriteLine(erro.Message);
@@ -264,9 +265,35 @@ double LerNumero(List<string> elementos, ref int indice)
     return numero;
 }
 
+double LerExpressao(List<string> elementos, ref int indice)
+{
+    double resultado = LerTermo(elementos, ref indice);
+
+    while (indice < elementos.Count
+           && (elementos[indice] == "+" || elementos[indice] == "-"))
+    {
+        string operador = elementos[indice];
+        indice++;
+
+        double proximoTermo = LerTermo(elementos, ref indice);
+
+        if (operador == "+")
+        {
+            resultado += proximoTermo;
+        }
+        
+        else
+        {
+            resultado -= proximoTermo;
+        }
+    }
+
+    return resultado;
+}
+
 double LerTermo(List<string> elementos, ref int indice)
 {
-    double resultado = LerNumero(elementos, ref indice);
+    double resultado = LerFator(elementos, ref indice);
 
     while (indice < elementos.Count
            && (elementos[indice] == "*" || elementos[indice] == "/"))
@@ -274,12 +301,13 @@ double LerTermo(List<string> elementos, ref int indice)
         string operador = elementos[indice];
         indice++;
 
-        double proximoNumero = LerNumero(elementos, ref indice);
+        double proximoNumero = LerFator(elementos, ref indice);
 
         if (operador == "*")
         {
             resultado *= proximoNumero;
         }
+
         else
         {
             if (proximoNumero == 0)
@@ -293,4 +321,28 @@ double LerTermo(List<string> elementos, ref int indice)
     }
 
     return resultado;
+}
+
+double LerFator(List<string> elementos, ref int indice)
+{
+    if (indice >= elementos.Count)
+    {
+        throw new FormatException("Faltou um número na expressão.");
+    }
+
+    if (elementos[indice] == "(")
+    {
+        indice++;
+        double resultado = LerExpressao(elementos, ref indice);
+
+        if (indice >= elementos.Count || elementos[indice] != ")")
+        {
+            throw new FormatException("Faltou um parêntese de fechamento.");
+        }
+
+        indice++;
+        return resultado;
+    }
+
+    return LerNumero(elementos, ref indice);
 }
