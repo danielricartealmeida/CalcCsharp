@@ -1,0 +1,125 @@
+<Window x:Class="Calculadora.Visual.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Calculadora" Width="420" Height="740"
+        ResizeMode="CanMinimize" WindowStyle="SingleBorderWindow"
+        Background="#202020" Foreground="#FAFAFA" FontFamily="Segoe UI"
+        UseLayoutRounding="True" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Background" Value="#3B3B3B"/>
+            <Setter Property="Foreground" Value="#FAFAFA"/>
+            <Setter Property="BorderBrush" Value="#484848"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Fundo" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Fundo" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Fundo" Property="Opacity" Value="0.35"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Fundo" Property="Opacity" Value="0.62"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Operacao" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#323232"/>
+        </Style>
+    </Window.Resources>
+
+
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="44"/>
+            <RowDefinition Height="28"/>
+            <RowDefinition Height="110"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Margin="8,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="40"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Padrão" FontSize="21" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button x:Name="Fixar" Grid.Column="1" Content="↗" Click="Fixar_Click"
+                    Background="Transparent" BorderThickness="0" ToolTip="Sempre visível"/>
+            <Grid Grid.Column="2">
+                <Button x:Name="BotaoPassos" Content="≡" Click="Painel_Click"
+                        Background="Transparent" BorderThickness="0"
+                        ToolTip="Resolução passo a passo (F2)"
+                        AutomationProperties.Name="Abrir resolução passo a passo"/>
+                <Ellipse x:Name="AvisoPassos" Width="7" Height="7" Fill="#4CC2FF"
+                         HorizontalAlignment="Right" VerticalAlignment="Top"
+                         Margin="0,5,4,0" Visibility="Collapsed" IsHitTestVisible="False"/>
+            </Grid>
+        </Grid>
+        <TextBlock x:Name="Resumo" Grid.Row="1" Margin="12,0" Foreground="#AAAAAA"
+                   TextAlignment="Right" TextTrimming="CharacterEllipsis" FontSize="14"/>
+        <TextBox x:Name="Entrada" Grid.Row="2" Text="0" FontSize="46" FontWeight="SemiBold"
+                 Background="Transparent" Foreground="White" CaretBrush="White"
+                 BorderThickness="0" TextAlignment="Right" VerticalContentAlignment="Center"
+                 Padding="12" HorizontalScrollBarVisibility="Auto"
+                 TextChanged="Entrada_TextChanged" KeyDown="Entrada_KeyDown"
+                 PreviewTextInput="Entrada_PreviewTextInput"/>
+        <TextBlock x:Name="Erro" Grid.Row="3" Foreground="Salmon" FontSize="12"
+                   Margin="12,0" TextWrapping="Wrap"/>
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Content="(" Tag="(" Click="Tecla_Click" FontSize="16" MinHeight="24"
+                    Style="{StaticResource Operacao}" ToolTip="Abrir parêntese"/>
+            <Button Grid.Column="1" Content=")" Tag=")" Click="Tecla_Click" FontSize="16" MinHeight="24"
+                    Style="{StaticResource Operacao}" ToolTip="Fechar parêntese"/>
+        </Grid>
+        <UniformGrid Grid.Row="5" Columns="4">
+            <Button Content="%" Tag="%" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="CE" Tag="CE" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="C" Tag="C" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="⌫" Tag="back" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="1/x" Tag="inverse" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="x²" Tag="square" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="√x" Tag="sqrt" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="÷" Tag="/" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="7" Tag="7" Click="Tecla_Click"/>
+            <Button Content="8" Tag="8" Click="Tecla_Click"/>
+            <Button Content="9" Tag="9" Click="Tecla_Click"/>
+            <Button Content="×" Tag="*" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="4" Tag="4" Click="Tecla_Click"/>
+            <Button Content="5" Tag="5" Click="Tecla_Click"/>
+            <Button Content="6" Tag="6" Click="Tecla_Click"/>
+            <Button Content="−" Tag="-" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="1" Tag="1" Click="Tecla_Click"/>
+            <Button Content="2" Tag="2" Click="Tecla_Click"/>
+            <Button Content="3" Tag="3" Click="Tecla_Click"/>
+            <Button Content="+" Tag="+" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="+/-" Tag="sign" Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="0" Tag="0" Click="Tecla_Click"/>
+            <Button Content="," Tag="," Click="Tecla_Click" Style="{StaticResource Operacao}"/>
+            <Button Content="=" Tag="=" Click="Tecla_Click" Background="#4CC2FF" Foreground="#10212A" BorderBrush="#4CC2FF"/>
+        </UniformGrid>
+    </Grid>
+</Window>

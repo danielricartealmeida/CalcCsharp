@@ -1,0 +1,21 @@
+CALCULADORA
+Abra AbrirCalculadora.cmd ou execute:
+dotnet run --project Interface/Calculadora.Visual.csproj
+
+A resolução nunca abre automaticamente.
+Uma bolinha azul no botão de três linhas indica passos disponíveis.
+Clique nesse botão ou pressione F2 para abrir a resolução.
+O histórico e a memória foram removidos nesta versão.
+As operações padrão, porcentagem, raiz, quadrado, inverso, decimais e sinal continuam disponíveis.
+Nos botões, as operações são sequenciais; expressões digitadas respeitam prioridade e parênteses.
+A janela continua com tamanho fixo e moldura nativa escura.
+Cantos arredondados nativos requerem Windows 11.
+XAML, eventos e locais de abertura do painel foram conferidos.
+A compilação e a aparência precisam ser verificadas no Windows.
+
+PARÊNTESES
+Os botões pequenos ( e ) ficam acima de % e CE.
+Teclado e botões podem ser combinados na mesma expressão.
+Clicar em ( depois de um número insere * automaticamente.
+Exemplo pelos botões: 5, ×, (, 2, +, 3, ), = resulta em 25.
+Exemplo misto: clicar 5, ×; digitar (2+3); clicar = resulta em 25.
