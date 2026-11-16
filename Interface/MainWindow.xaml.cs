@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 
 namespace Calculadora.Visual;
 
@@ -14,7 +15,9 @@ public partial class MainWindow : Window
 {
     private static readonly CultureInfo Invariante = CultureInfo.InvariantCulture;
     private List<string> passos = new();
-    private PainelAuxiliar? painel;
+    private bool painelAberto;
+    private bool avisoDisponivel;
+    private int versaoAviso;
     private string operacao = "";
     private double acumulado;
     private bool novoNumero = true;
@@ -31,8 +34,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         TemaJanela.Aplicar(this);
         previa.Tick += (_, _) => { previa.Stop(); AtualizarPrevia(); };
-        LocationChanged += (_, _) => PosicionarPainel();
-        Closed += (_, _) => { previa.Stop(); painel?.Close(); };
+        Closed += (_, _) => previa.Stop();
         Loaded += (_, _) => { Entrada.Focus(); Entrada.SelectAll(); };
     }
 
@@ -58,7 +60,7 @@ public partial class MainWindow : Window
 
     private void Entrada_TextChanged(object sender, TextChangedEventArgs e)
     {
-        if (alteracaoInterna || Erro is null || AvisoPassos is null) return;
+        if (alteracaoInterna || Erro is null || AvisoPassos is null || TextoPassos is null) return;
         LimparPassos();
         modoExpressao = true;
         resultadoExibido = false;
@@ -255,7 +257,7 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter) { Executar(Calcular); e.Handled = true; }
         else if (e.Key == Key.Escape) { Limpar(); e.Handled = true; }
         else if (e.Key == Key.F9) { Executar(() => Funcao("sign")); e.Handled = true; }
-        else if (e.Key == Key.F2) { AbrirPainel(); e.Handled = true; }
+
     }
 
     private void AtivarModoExpressao()
@@ -357,15 +359,14 @@ public partial class MainWindow : Window
     private void Fixar_Click(object sender, RoutedEventArgs e)
     {
         Topmost = !Topmost;
-        Fixar.Foreground = Topmost
-            ? System.Windows.Media.Brushes.DeepSkyBlue : System.Windows.Media.Brushes.White;
-        if (painel is not null) painel.Topmost = Topmost;
+        AnimarSeta();
+
     }
 
     private void LimparPassos()
     {
         passos.Clear();
-        AvisoPassos.Visibility = Visibility.Collapsed;
+        AtualizarAviso(false);
         BotaoPassos.ToolTip = "Resolução passo a passo (F2)";
         AtualizarPainel();
     }
@@ -373,8 +374,7 @@ public partial class MainWindow : Window
     private void DisponibilizarPassos()
     {
         bool disponivel = passos.Count > 1;
-        AvisoPassos.Visibility = disponivel && painel is null
-            ? Visibility.Visible : Visibility.Collapsed;
+        AtualizarAviso(disponivel && !painelAberto);
         BotaoPassos.ToolTip = disponivel
             ? "Passo a passo disponível — clique para abrir (F2)"
             : "Resolução passo a passo (F2)";
@@ -383,6 +383,12 @@ public partial class MainWindow : Window
 
     private void AbrirPainel()
     {
+        AnimarTracos();
+        if (painelAberto)
+        {
+            FecharPainel();
+            return;
+        }
         previa.Stop();
         if (!resultadoExibido)
         {
@@ -390,31 +396,135 @@ public partial class MainWindow : Window
             catch (FormatException) { passos.Clear(); }
             catch (ArithmeticException) { passos.Clear(); }
         }
-        if (painel is null)
-        {
-            painel = new PainelAuxiliar { Owner = this, Topmost = Topmost };
-            painel.Closed += (_, _) => painel = null;
-        }
+        painelAberto = true;
         AtualizarPainel();
-        PosicionarPainel();
-        if (!painel.IsVisible) painel.Show();
-        AvisoPassos.Visibility = Visibility.Collapsed;
+        FundoPainel.Visibility = Visibility.Visible;
+        PainelPassos.Visibility = Visibility.Visible;
+        AtualizarAviso(false);
         BotaoPassos.ToolTip = "Resolução passo a passo (F2)";
-        painel.Activate();
+        double altura = Math.Max(1, LayoutCalculadora.RowDefinitions[4].ActualHeight
+            + LayoutCalculadora.RowDefinitions[5].ActualHeight);
+        DeslocamentoPainel.BeginAnimation(
+            System.Windows.Media.TranslateTransform.YProperty,
+            new DoubleAnimation(altura, 0, TimeSpan.FromMilliseconds(180))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            });
+        FundoPainel.BeginAnimation(OpacityProperty,
+            new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(150)));
+        TextoPassos.Focus();
+    }
+
+    private void FecharPainel()
+    {
+        painelAberto = false;
+        DeslocamentoPainel.BeginAnimation(
+            System.Windows.Media.TranslateTransform.YProperty, null);
+        FundoPainel.BeginAnimation(OpacityProperty, null);
+        FundoPainel.Visibility = Visibility.Collapsed;
+        PainelPassos.Visibility = Visibility.Collapsed;
+        Entrada.Focus();
+        Entrada.CaretIndex = Entrada.Text.Length;
+    }
+
+    private void FecharPainel_Click(object sender, RoutedEventArgs e) => FecharPainel();
+
+    private void FundoPainel_Click(object sender, MouseButtonEventArgs e)
+    {
+        FecharPainel();
+        e.Handled = true;
+    }
+
+    private void Janela_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F2)
+        {
+            AbrirPainel();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && painelAberto)
+        {
+            FecharPainel();
+            e.Handled = true;
+        }
+    }
+
+    private static DoubleAnimationUsingKeyFrames Movimento(params (double ms, double valor)[] pontos)
+    {
+        var animacao = new DoubleAnimationUsingKeyFrames();
+        foreach (var ponto in pontos)
+            animacao.KeyFrames.Add(new EasingDoubleKeyFrame(
+                ponto.valor, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(ponto.ms)),
+                new QuadraticEase { EasingMode = EasingMode.EaseOut }));
+        return animacao;
+    }
+
+    private void AnimarTracos()
+    {
+        if (!SystemParameters.ClientAreaAnimation) return;
+        EscalaTracos.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty,
+            Movimento((0, 1), (65, 0.62), (200, 1)));
+        EscalaTracos.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty,
+            Movimento((0, 1), (65, 0.82), (200, 1)));
+    }
+
+    private void AnimarSeta()
+    {
+        var destino = Topmost ? System.Windows.Media.Color.FromRgb(76, 194, 255)
+            : System.Windows.Media.Colors.White;
+        Fixar.ToolTip = Topmost ? "Sempre visível: ativado" : "Sempre visível: desativado";
+        if (!SystemParameters.ClientAreaAnimation)
+        {
+            CorSeta.Color = destino;
+            return;
+        }
+        CorSeta.BeginAnimation(System.Windows.Media.SolidColorBrush.ColorProperty,
+            new ColorAnimation(destino, TimeSpan.FromMilliseconds(150)));
+        double sentido = Topmost ? 1 : -1;
+        MovimentoSeta.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty,
+            Movimento((0, 0), (80, 2 * sentido), (220, 0)));
+        MovimentoSeta.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty,
+            Movimento((0, 0), (80, -2 * sentido), (220, 0)));
+    }
+
+    private void AtualizarAviso(bool mostrar)
+    {
+        if (avisoDisponivel == mostrar) return;
+        avisoDisponivel = mostrar;
+        int versao = ++versaoAviso;
+        if (!SystemParameters.ClientAreaAnimation)
+        {
+            AvisoPassos.BeginAnimation(OpacityProperty, null);
+            AvisoPassos.Opacity = 1;
+            AvisoPassos.Visibility = mostrar ? Visibility.Visible : Visibility.Collapsed;
+            return;
+        }
+        if (mostrar)
+        {
+            AvisoPassos.Visibility = Visibility.Visible;
+            AvisoPassos.BeginAnimation(OpacityProperty,
+                new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+            EscalaAviso.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleXProperty,
+                Movimento((0, 0.25), (160, 1.15), (280, 1)));
+            EscalaAviso.BeginAnimation(System.Windows.Media.ScaleTransform.ScaleYProperty,
+                Movimento((0, 0.25), (160, 1.15), (280, 1)));
+        }
+        else
+        {
+            var sumir = new DoubleAnimation(0, TimeSpan.FromMilliseconds(100));
+            sumir.Completed += (_, _) =>
+            {
+                if (versao == versaoAviso && !avisoDisponivel)
+                    AvisoPassos.Visibility = Visibility.Collapsed;
+            };
+            AvisoPassos.BeginAnimation(OpacityProperty, sumir);
+        }
     }
 
     private void AtualizarPainel()
     {
-        painel?.Atualizar(passos);
-    }
-
-    private void PosicionarPainel()
-    {
-        if (painel is null) return;
-        var area = SystemParameters.WorkArea;
-        double direita = Left + Width + 8;
-        painel.Left = direita + painel.Width <= area.Right
-            ? direita : Math.Max(area.Left, Left - painel.Width - 8);
-        painel.Top = Math.Max(area.Top, Math.Min(Top, area.Bottom - painel.Height));
+        TextoPassos.Text = passos.Count < 2
+            ? "Faça uma conta para ver a resolução aqui."
+            : string.Join(Environment.NewLine + "= ", passos).Replace('.', ',');
     }
 }

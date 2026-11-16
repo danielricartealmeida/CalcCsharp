@@ -4,7 +4,7 @@
         Title="Calculadora" Width="420" Height="740"
         ResizeMode="CanMinimize" WindowStyle="SingleBorderWindow"
         Background="#202020" Foreground="#FAFAFA" FontFamily="Segoe UI"
-        UseLayoutRounding="True" WindowStartupLocation="CenterScreen">
+        UseLayoutRounding="True" WindowStartupLocation="CenterScreen" PreviewKeyDown="Janela_PreviewKeyDown">
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Margin" Value="2"/>
@@ -44,10 +44,31 @@
         <Style x:Key="Operacao" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Background" Value="#323232"/>
         </Style>
+        <Style x:Key="BotaoCabecalho" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Realce" Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Realce" Property="Background" Value="#383838"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Realce" Property="Background" Value="#303030"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
 
-    <Grid Margin="4">
+    <Grid x:Name="LayoutCalculadora" Margin="4" ClipToBounds="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="44"/>
             <RowDefinition Height="28"/>
@@ -63,16 +84,34 @@
                 <ColumnDefinition Width="40"/>
             </Grid.ColumnDefinitions>
             <TextBlock Text="Padrão" FontSize="21" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            <Button x:Name="Fixar" Grid.Column="1" Content="↗" Click="Fixar_Click"
-                    Background="Transparent" BorderThickness="0" ToolTip="Sempre visível"/>
+            <Button x:Name="Fixar" Grid.Column="1" Click="Fixar_Click"
+                    Style="{StaticResource BotaoCabecalho}" ToolTip="Sempre visível"
+                    AutomationProperties.Name="Ativar ou desativar sempre visível">
+                <Path Data="M 3,15 L 15,3 M 6,3 L 15,3 L 15,12" StrokeThickness="1.7"
+                      Width="18" Height="18" RenderTransformOrigin="0.5,0.5"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                    <Path.Stroke><SolidColorBrush x:Name="CorSeta" Color="White"/></Path.Stroke>
+                    <Path.RenderTransform><TranslateTransform x:Name="MovimentoSeta"/></Path.RenderTransform>
+                </Path>
+            </Button>
             <Grid Grid.Column="2">
-                <Button x:Name="BotaoPassos" Content="≡" Click="Painel_Click"
-                        Background="Transparent" BorderThickness="0"
+                <Button x:Name="BotaoPassos" Click="Painel_Click"
+                        Style="{StaticResource BotaoCabecalho}"
                         ToolTip="Resolução passo a passo (F2)"
-                        AutomationProperties.Name="Abrir resolução passo a passo"/>
+                        AutomationProperties.Name="Abrir resolução passo a passo">
+                    <Canvas Width="18" Height="14" RenderTransformOrigin="0.5,0.5">
+                        <Canvas.RenderTransform><ScaleTransform x:Name="EscalaTracos"/></Canvas.RenderTransform>
+                        <Rectangle Width="18" Height="1.6" RadiusX="0.8" RadiusY="0.8" Fill="White" Canvas.Top="0"/>
+                        <Rectangle Width="18" Height="1.6" RadiusX="0.8" RadiusY="0.8" Fill="White" Canvas.Top="6"/>
+                        <Rectangle Width="18" Height="1.6" RadiusX="0.8" RadiusY="0.8" Fill="White" Canvas.Top="12"/>
+                    </Canvas>
+                </Button>
                 <Ellipse x:Name="AvisoPassos" Width="7" Height="7" Fill="#4CC2FF"
                          HorizontalAlignment="Right" VerticalAlignment="Top"
-                         Margin="0,5,4,0" Visibility="Collapsed" IsHitTestVisible="False"/>
+                         Margin="0,5,4,0" Visibility="Collapsed" IsHitTestVisible="False"
+                         RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform><ScaleTransform x:Name="EscalaAviso"/></Ellipse.RenderTransform>
+                </Ellipse>
             </Grid>
         </Grid>
         <TextBlock x:Name="Resumo" Grid.Row="1" Margin="12,0" Foreground="#AAAAAA"
@@ -121,5 +160,40 @@
             <Button Content="," Tag="," Click="Tecla_Click" Style="{StaticResource Operacao}"/>
             <Button Content="=" Tag="=" Click="Tecla_Click" Background="#4CC2FF" Foreground="#10212A" BorderBrush="#4CC2FF"/>
         </UniformGrid>
+
+        <!-- Overlays stay in the existing window and do not change its size. -->
+        <Border x:Name="FundoPainel" Grid.Row="0" Grid.RowSpan="6"
+                Panel.ZIndex="10" Background="#99000000" Visibility="Collapsed"
+                MouseLeftButtonDown="FundoPainel_Click"/>
+        <Border x:Name="PainelPassos" Grid.Row="4" Grid.RowSpan="2"
+                Panel.ZIndex="11" Background="#282828" CornerRadius="10,10,0,0"
+                BorderBrush="#424242" BorderThickness="1,1,1,0"
+                Visibility="Collapsed">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="DeslocamentoPainel"/>
+            </Border.RenderTransform>
+            <Grid Margin="14">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="42"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="34"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Resolução passo a passo" FontSize="17"
+                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="✕" FontSize="15"
+                            Background="Transparent" BorderThickness="0"
+                            ToolTip="Fechar (Esc)" Click="FecharPainel_Click"/>
+                </Grid>
+                <TextBox x:Name="TextoPassos" Grid.Row="1" IsReadOnly="True"
+                         Background="Transparent" Foreground="#EEEEEE"
+                         BorderThickness="0" FontFamily="Consolas" FontSize="19"
+                         TextWrapping="Wrap" Padding="3,14,3,4"
+                         VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>

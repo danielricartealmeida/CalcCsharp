@@ -19,3 +19,17 @@ Teclado e botões podem ser combinados na mesma expressão.
 Clicar em ( depois de um número insere * automaticamente.
 Exemplo pelos botões: 5, ×, (, 2, +, 3, ), = resulta em 25.
 Exemplo misto: clicar 5, ×; digitar (2+3); clicar = resulta em 25.
+
+PAINEL INTERNO DE RESOLUÇÃO
+O botão de três linhas ou F2 abre um painel sobre as teclas, dentro da janela.
+O visor fica escurecido ao fundo; a janela mantém seu tamanho.
+Clique no fundo escuro, no X do painel ou pressione Esc para fechar.
+A bolinha azul continua indicando novos passos; não há abertura automática.
+O texto da resolução pode ser selecionado e copiado.
+
+ANIMAÇÕES DO CABEÇALHO
+Os três tracinhos comprimem e retornam ao abrir ou fechar o painel.
+A seta se desloca suavemente e muda de cor ao fixar/desfixar a janela.
+A bolinha azul surge com escala e opacidade; sem repetição contínua.
+As animações desses ícones respeitam a configuração de animações do Windows.
+A compilação e as animações ainda precisam de validação no Windows.
