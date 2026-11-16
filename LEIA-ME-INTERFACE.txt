@@ -33,3 +33,18 @@ A seta se desloca suavemente e muda de cor ao fixar/desfixar a janela.
 A bolinha azul surge com escala e opacidade; sem repetição contínua.
 As animações desses ícones respeitam a configuração de animações do Windows.
 A compilação e as animações ainda precisam de validação no Windows.
+
+MENU DE MODOS
+Botão de três linhas à esquerda abre o menu lateral.
+Alt+M também abre e fecha; Esc ou clicar fora fecha.
+Padrão aparece selecionado, com destaque azul. Selecioná-lo preserva a conta.
+O menu tem as opções visíveis no vídeo: Padrão, Científica,
+Representação gráfica, Programador, Cálculo de data; Moeda, Volume,
+Comprimento, Peso e massa, Temperatura, Energia, Área e Velocidade;
+Configurações fica fixa no rodapé.
+Somente Padrão está implementado. Demais opções estão desabilitadas
+com a indicação "Em breve" no tooltip.
+O menu tem rolagem e não abre junto com o painel de resolução.
+O botão da direita mantém a resolução e sua bolinha azul.
+Validação local: XAML, nomes, eventos, itens do menu e integridade do ZIP.
+A compilação e o visual ainda precisam de validação no Windows.

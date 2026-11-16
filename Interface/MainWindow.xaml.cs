@@ -322,6 +322,11 @@ public partial class MainWindow : Window
 
     private void Entrada_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {
+        if (menuAberto)
+        {
+            e.Handled = true;
+            return;
+        }
         if (e.Text == "(" || e.Text == ")")
         {
             Executar(() => Parenteses(e.Text));
@@ -383,6 +388,7 @@ public partial class MainWindow : Window
 
     private void AbrirPainel()
     {
+        FecharMenu(false);
         AnimarTracos();
         if (painelAberto)
         {
@@ -437,7 +443,23 @@ public partial class MainWindow : Window
 
     private void Janela_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F2)
+        if ((e.Key == Key.M || (e.Key == Key.System && e.SystemKey == Key.M))
+            && (Keyboard.Modifiers & ModifierKeys.Alt) != 0)
+        {
+            AlternarMenu();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && menuAberto)
+        {
+            FecharMenu();
+            e.Handled = true;
+        }
+        else if (menuAberto && e.Key == Key.Enter)
+        {
+            FecharMenu();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.F2)
         {
             AbrirPainel();
             e.Handled = true;
