@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets/logo.ico</ApplicationIcon>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
@@ -10,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
+    <Resource Include="Assets/logo.ico" />
     <Page Include="MainWindow.xaml" />
     <Compile Include="../MotorCalculadora.cs" Link="MotorCalculadora.cs" />
   </ItemGroup>

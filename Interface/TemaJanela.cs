@@ -16,6 +16,8 @@ public static class TemaJanela
     {
         janela.SourceInitialized += (_, _) =>
         {
+            janela.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(
+                new Uri("pack://application:,,,/Assets/logo.ico", UriKind.Absolute));
             IntPtr hwnd = new WindowInteropHelper(janela).Handle;
             int escuro = 1, arredondado = 2, fundo = 0x202020, branco = 0xFAFAFA;
             DwmSetWindowAttribute(hwnd, 20, ref escuro, sizeof(int));
